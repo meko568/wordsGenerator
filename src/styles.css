@@ -27,3 +27,6 @@ select,input[type=number],.slot input{font:inherit;padding:8px;border:1px solid 
 .short button{color:var(--bg);border-color:var(--bg)}.short span{flex:1;opacity:.8}
 button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
 @media(max-width:760px){.layout{grid-template-columns:1fr}.panel{position:static}}
+.batch{margin-top:18px}
+.batch-head{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid var(--ink);padding-bottom:6px}
+.batch-head button{font:inherit;padding:4px 12px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);cursor:pointer}

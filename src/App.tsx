@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Slot, SlotType, Space, NumPos, fromPreset, patternSpace, shuffled, wordSpace } from './lib/generate'
 
-const BATCH = 100
+const BATCH = 200
 const PRESETS = ['CVCV', 'CVCVC', 'LLLL', 'LLLD', 'DLLL', 'LLDD', 'CVCC', 'LDLD', 'CVCVCV']
 const TYPES: [SlotType, string][] = [
   ['letter', 'Any letter'], ['vowel', 'Vowel'], ['consonant', 'Consonant'],
@@ -10,6 +10,7 @@ const TYPES: [SlotType, string][] = [
 
 function Results({ space, favs, toggle }: { space: Space; favs: Set<string>; toggle: (w: string) => void }) {
   const [shown, setShown] = useState(BATCH)
+  const [copied, setCopied] = useState(-1)
   const end = useRef<HTMLDivElement>(null)
   useEffect(() => setShown(BATCH), [space])
   useEffect(() => {
@@ -20,15 +21,28 @@ function Results({ space, favs, toggle }: { space: Space; favs: Set<string>; tog
     return () => io.disconnect()
   }, [space, shown])
   const items = useMemo(() => Array.from({ length: Math.min(shown, space.total) }, (_, i) => space.at(i)), [space, shown])
+  const chunks = Array.from({ length: Math.ceil(items.length / BATCH) }, (_, c) => items.slice(c * BATCH, (c + 1) * BATCH))
+  const copy = (c: number) => {
+    navigator.clipboard.writeText(chunks[c].join('\n'))
+    setCopied(c); setTimeout(() => setCopied(-1), 1200)
+  }
   if (!space.total) return <p className="empty">Nothing to generate yet. Add a slot or loosen the filters.</p>
   return (
     <>
       <p className="count"><b>{space.total.toLocaleString()}</b> possible · showing {items.length.toLocaleString()}</p>
-      <div className="grid">
-        {items.map((w, i) => (
-          <button key={i} className={'tile' + (favs.has(w) ? ' fav' : '')} onClick={() => toggle(w)} title="Click to save">{w}</button>
-        ))}
-      </div>
+      {chunks.map((ch, c) => (
+        <div key={c} className="batch">
+          <div className="batch-head">
+            <span>{c * BATCH + 1}–{c * BATCH + ch.length}</span>
+            <button onClick={() => copy(c)}>{copied === c ? 'Copied' : `Copy ${ch.length}`}</button>
+          </div>
+          <div className="grid">
+            {ch.map((w, i) => (
+              <button key={i} className={'tile' + (favs.has(w) ? ' fav' : '')} onClick={() => toggle(w)} title="Click to save">{w}</button>
+            ))}
+          </div>
+        </div>
+      ))}
       <div ref={end} className="end" />
     </>
   )
